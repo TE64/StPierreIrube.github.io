@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css">
+        <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
+        <link rel="stylesheet" href="css/qgis2web.css">
+        <link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="css/filter.css">
+<link rel="stylesheet" href="css/nouislider.min.css">
+        <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        </style>
+        <title></title>
+    </head>
+    <body>
+        <div id="map">
+        </div>
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/L.Control.Layers.Tree.min.js"></script>
+        <script src="js/leaflet-svg-shape-markers.min.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="js/tailDT.js"></script>
+<script src="js/nouislider.min.js"></script>
+<script src="js/wNumb.js"></script>
+        <script src="data/Coffretdecommande_2.js"></script>
+        <script src="data/22REP168_3.js"></script>
+        <script>
+        var highlightLayer;
+        function highlightFeature(e) {
+            highlightLayer = e.target;
+
+            if (e.target.feature.geometry.type === 'LineString' || e.target.feature.geometry.type === 'MultiLineString') {
+              highlightLayer.setStyle({
+                color: '#ffff00',
+              });
+            } else {
+              highlightLayer.setStyle({
+                fillColor: '#ffff00',
+                fillOpacity: 1
+              });
+            }
+            highlightLayer.openPopup();
+        }
+        var map = L.map('map', {
+            zoomControl:true, maxZoom:28, minZoom:1
+        }).fitBounds([[43.44721110294134,-1.4777864762984747],[43.480821216135055,-1.4011172654970898]]);
+        var hash = new L.Hash(map);
+        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        function removeEmptyRowsFromPopupContent(content, feature) {
+         var tempDiv = document.createElement('div');
+         tempDiv.innerHTML = content;
+         var rows = tempDiv.querySelectorAll('tr');
+         for (var i = 0; i < rows.length; i++) {
+             var td = rows[i].querySelector('td.visible-with-data');
+             var key = td ? td.id : '';
+             if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
+                 rows[i].parentNode.removeChild(rows[i]);
+             }
+         }
+         return tempDiv.innerHTML;
+        }
+        document.querySelector(".leaflet-popup-pane").addEventListener("load", function(event) {
+          var tagName = event.target.tagName,
+            popup = map._popup;
+          // Also check if flag is already set.
+          if (tagName === "IMG" && popup && !popup._updated) {
+            popup._updated = true; // Set flag to prevent looping.
+            popup.update();
+          }
+        }, true);
+        var bounds_group = new L.featureGroup([]);
+        function setBounds() {
+        }
+        map.createPane('pane_GoogleSatellite_0');
+        map.getPane('pane_GoogleSatellite_0').style.zIndex = 400;
+        var layer_GoogleSatellite_0 = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+            pane: 'pane_GoogleSatellite_0',
+            opacity: 1.0,
+            attribution: '<a href="https://www.google.at/permissions/geoguidelines/attr-guide.html">Map data ©2015 Google</a>',
+            minZoom: 1,
+            maxZoom: 28,
+            minNativeZoom: 0,
+            maxNativeZoom: 20
+        });
+        layer_GoogleSatellite_0;
+        map.addLayer(layer_GoogleSatellite_0);
+        map.createPane('pane_OSMStandard_1');
+        map.getPane('pane_OSMStandard_1').style.zIndex = 401;
+        var layer_OSMStandard_1 = L.tileLayer('http://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            pane: 'pane_OSMStandard_1',
+            opacity: 1.0,
+            attribution: '<a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors, CC-BY-SA</a>',
+            minZoom: 1,
+            maxZoom: 28,
+            minNativeZoom: 0,
+            maxNativeZoom: 19
+        });
+        layer_OSMStandard_1;
+        map.addLayer(layer_OSMStandard_1);
+        function pop_Coffretdecommande_2(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (var i in e.target._eventParents) {
+                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
+                            e.target._eventParents[i].resetStyle(e.target);
+                        }
+                    }
+                    if (typeof layer.closePopup == 'function') {
+                        layer.closePopup();
+                    } else {
+                        layer.eachLayer(function(feature){
+                            feature.closePopup()
+                        });
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Libell�'] !== null ? autolinker.link(feature.properties['Libell�'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Rue'] !== null ? autolinker.link(feature.properties['Rue'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Nom du pos'] !== null ? autolinker.link(feature.properties['Nom du pos'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Num�ro d'] !== null ? autolinker.link(feature.properties['Num�ro d'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+            var popup = layer.getPopup();
+            var content = popup.getContent();
+            var updatedContent = removeEmptyRowsFromPopupContent(content, feature);
+            popup.setContent(updatedContent);
+        }
+
+        function style_Coffretdecommande_2_0() {
+            return {
+                pane: 'pane_Coffretdecommande_2',
+                shape: 'square',
+                radius: 6.0,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(70,80,90,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Coffretdecommande_2');
+        map.getPane('pane_Coffretdecommande_2').style.zIndex = 402;
+        map.getPane('pane_Coffretdecommande_2').style['mix-blend-mode'] = 'normal';
+        var layer_Coffretdecommande_2 = new L.geoJson(json_Coffretdecommande_2, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Coffretdecommande_2',
+            layerName: 'layer_Coffretdecommande_2',
+            pane: 'pane_Coffretdecommande_2',
+            onEachFeature: pop_Coffretdecommande_2,
+            pointToLayer: function (feature, latlng) {
+                var context = {
+                    feature: feature,
+                    variables: {}
+                };
+                return L.shapeMarker(latlng, style_Coffretdecommande_2_0(feature));
+            },
+        });
+        bounds_group.addLayer(layer_Coffretdecommande_2);
+        map.addLayer(layer_Coffretdecommande_2);
+        function pop_22REP168_3(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (var i in e.target._eventParents) {
+                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
+                            e.target._eventParents[i].resetStyle(e.target);
+                        }
+                    }
+                    if (typeof layer.closePopup == 'function') {
+                        layer.closePopup();
+                    } else {
+                        layer.eachLayer(function(feature){
+                            feature.closePopup()
+                        });
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Libellé</th>\
+                        <td class="visible-with-data" id="Libell�">' + (feature.properties['Libell�'] !== null ? autolinker.link(feature.properties['Libell�'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Coffret de commande</th>\
+                        <td class="visible-with-data" id="Arm.">' + (feature.properties['Arm.'] !== null ? autolinker.link(feature.properties['Arm.'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Ht existan'] !== null ? autolinker.link(feature.properties['Ht existan'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Lanterne existante</th>\
+                        <td class="visible-with-data" id="Lanterne e">' + (feature.properties['Lanterne e'] !== null ? autolinker.link(feature.properties['Lanterne e'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Type de la'] !== null ? autolinker.link(feature.properties['Type de la'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Source Exi'] !== null ? autolinker.link(feature.properties['Source Exi'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Support'] !== null ? autolinker.link(feature.properties['Support'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Mât à poser</th>\
+                        <td class="visible-with-data" id="Mât à po">' + (feature.properties['Mât à po'] !== null ? autolinker.link(feature.properties['Mât à po'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Crosse à poser</th>\
+                        <td class="visible-with-data" id="Crosse �">' + (feature.properties['Crosse �'] !== null ? autolinker.link(feature.properties['Crosse �'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Lanterne à poser</th>\
+                        <td class="visible-with-data" id="Lanterne">' + (feature.properties['Lanterne'] !== null ? autolinker.link(feature.properties['Lanterne'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td class="visible-with-data" id="Observatio"colspan="2"><strong>Observation</strong><br />' + (feature.properties['Observatio'] !== null ? autolinker.link(feature.properties['Observatio'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+            var popup = layer.getPopup();
+            var content = popup.getContent();
+            var updatedContent = removeEmptyRowsFromPopupContent(content, feature);
+            popup.setContent(updatedContent);
+        }
+
+        function style_22REP168_3_0(feature) {
+            switch(String(feature.properties['Lanterne'])) {
+                case 'EXIO':
+                    return {
+                pane: 'pane_22REP168_3',
+                radius: 4.0,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(50,185,200,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'HAPILED':
+                    return {
+                pane: 'pane_22REP168_3',
+                radius: 4.0,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(155,50,135,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'RETROFIT LEDS':
+                    return {
+                pane: 'pane_22REP168_3',
+                radius: 4.0,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(70,80,90,1.0)',
+                interactive: true,
+            }
+                    break;
+                default:
+                    return {
+                pane: 'pane_22REP168_3',
+                radius: 4.0,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,255,255,1.0)',
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_22REP168_3');
+        map.getPane('pane_22REP168_3').style.zIndex = 403;
+        map.getPane('pane_22REP168_3').style['mix-blend-mode'] = 'normal';
+        var layer_22REP168_3 = new L.geoJson(json_22REP168_3, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_22REP168_3',
+            layerName: 'layer_22REP168_3',
+            pane: 'pane_22REP168_3',
+            onEachFeature: pop_22REP168_3,
+            pointToLayer: function (feature, latlng) {
+                var context = {
+                    feature: feature,
+                    variables: {}
+                };
+                return L.circleMarker(latlng, style_22REP168_3_0(feature));
+            },
+        });
+        bounds_group.addLayer(layer_22REP168_3);
+        map.addLayer(layer_22REP168_3);
+        var baseMaps = {};
+        var overlaysTree = [
+            {label: '22REP168<br /><table><tr><td style="text-align: center;"><img src="legend/22REP168_3_LuminairefonctionnelLED0.png" /></td><td>Luminaire fonctionnel LED</td></tr><tr><td style="text-align: center;"><img src="legend/22REP168_3_LuminairerésidentielLED1.png" /></td><td>Luminaire résidentiel LED</td></tr><tr><td style="text-align: center;"><img src="legend/22REP168_3_KitretrofitLED2.png" /></td><td>Kit retrofit LED</td></tr><tr><td style="text-align: center;"><img src="legend/22REP168_3_Nonconcerné3.png" /></td><td>Non concerné</td></tr></table>', layer: layer_22REP168_3},
+            {label: '<img src="legend/Coffretdecommande_2.png" /> Coffret de commande', layer: layer_Coffretdecommande_2},
+            {label: "OSM Standard", layer: layer_OSMStandard_1},
+            {label: "Google Satellite", layer: layer_GoogleSatellite_0},]
+        var lay = L.control.layers.tree(null, overlaysTree,{
+            //namedToggle: true,
+            //selectorBack: false,
+            //closedSymbol: '&#8862; &#x1f5c0;',
+            //openedSymbol: '&#8863; &#x1f5c1;',
+            //collapseAll: 'Collapse all',
+            //expandAll: 'Expand all',
+            collapsed: false, 
+        });
+        lay.addTo(map);
+        setBounds();
+        var i = 0;
+        layer_Coffretdecommande_2.eachLayer(function(layer) {
+            var context = {
+                feature: layer.feature,
+                variables: {}
+            };
+            layer.bindTooltip((layer.feature.properties['Libell�'] !== null?String('<div style="color: #323232; font-size: 9pt; font-family: \'Arial\', sans-serif;">' + layer.feature.properties['Libell�']) + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_Coffretdecommande_2'});
+            labels.push(layer);
+            totalMarkers += 1;
+              layer.added = true;
+              addLabel(layer, i);
+              i++;
+        });
+        var mapDiv = document.getElementById('map');
+        var row = document.createElement('div');
+        row.className="row";
+        row.id="all";
+        row.style.height = "100%";
+        var col1 = document.createElement('div');
+        col1.className="col9";
+        col1.id = "mapWindow";
+        col1.style.height = "99%";
+        col1.style.width = "80%";
+        col1.style.display = "inline-block";
+        var col2 = document.createElement('div');
+        col2.className="col3";
+        col2.id = "menu";
+        col2.style.display = "inline-block";
+        mapDiv.parentNode.insertBefore(row, mapDiv);
+        document.getElementById("all").appendChild(col1);
+        document.getElementById("all").appendChild(col2);
+        col1.appendChild(mapDiv)
+        var Filters = {"Lanterne": "str","Observatio": "str"};
+        function filterFunc() {
+          map.eachLayer(function(lyr){
+          if ("options" in lyr && "dataVar" in lyr["options"]){
+            features = this[lyr["options"]["dataVar"]].features.slice(0);
+            try{
+              for (key in Filters){
+                keyS = key.replace(/[^a-zA-Z0-9_]/g, "")
+                if (Filters[key] == "str" || Filters[key] == "bool"){
+                  var selection = [];
+                  var options = document.getElementById("sel_" + keyS).options
+                  for (var i=0; i < options.length; i++) {
+                    if (options[i].selected) selection.push(options[i].value);
+                  }
+                    try{
+                      if (key in features[0].properties){
+                        for (i = features.length - 1;
+                          i >= 0; --i){
+                          if (selection.indexOf(
+                          features[i].properties[key])<0
+                          && selection.length>0) {
+                          features.splice(i,1);
+                          }
+                        }
+                      }
+                    } catch(err){
+                  }
+                }
+                if (Filters[key] == "int"){
+                  sliderVals =  document.getElementById(
+                    "div_" + keyS).noUiSlider.get();
+                  try{
+                    if (key in features[0].properties){
+                    for (i = features.length - 1; i >= 0; --i){
+                      if (parseInt(features[i].properties[key])
+                          < sliderVals[0]
+                          || parseInt(features[i].properties[key])
+                          > sliderVals[1]){
+                            features.splice(i,1);
+                          }
+                        }
+                      }
+                    } catch(err){
+                    }
+                  }
+                if (Filters[key] == "real"){
+                  sliderVals =  document.getElementById(
+                    "div_" + keyS).noUiSlider.get();
+                  try{
+                    if (key in features[0].properties){
+                    for (i = features.length - 1; i >= 0; --i){
+                      if (features[i].properties[key]
+                          < sliderVals[0]
+                          || features[i].properties[key]
+                          > sliderVals[1]){
+                            features.splice(i,1);
+                          }
+                        }
+                      }
+                    } catch(err){
+                    }
+                  }
+                if (Filters[key] == "date"
+                  || Filters[key] == "datetime"
+                  || Filters[key] == "time"){
+                  try{
+                    if (key in features[0].properties){
+                      HTMLkey = key.replace(/[&\/\\#,+()$~%.'":*?<>{} ]/g, '');
+                      startdate = document.getElementById("dat_" +
+                        HTMLkey + "_date1").value.replace(" ", "T");
+                      enddate = document.getElementById("dat_" +
+                        HTMLkey + "_date2").value.replace(" ", "T");
+                      for (i = features.length - 1; i >= 0; --i){
+                        if (features[i].properties[key] < startdate
+                          || features[i].properties[key] > enddate){
+                          features.splice(i,1);
+                        }
+                      }
+                    }
+                  } catch(err){
+                  }
+                }
+              }
+            } catch(err){
+            }
+          this[lyr["options"]["layerName"]].clearLayers();
+          this[lyr["options"]["layerName"]].addData(features);
+        var i = 0;
+        layer_Coffretdecommande_2.eachLayer(function(layer) {
+            var context = {
+                feature: layer.feature,
+                variables: {}
+            };
+            layer.bindTooltip((layer.feature.properties['Libell�'] !== null?String('<div style="color: #323232; font-size: 9pt; font-family: \'Arial\', sans-serif;">' + layer.feature.properties['Libell�']) + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_Coffretdecommande_2'});
+            labels.push(layer);
+            totalMarkers += 1;
+              layer.added = true;
+              addLabel(layer, i);
+              i++;
+        });
+          }
+          })
+        }
+            document.getElementById("menu").appendChild(
+                document.createElement("div"));
+            var div_Lanterne = document.createElement('div');
+            div_Lanterne.id = "div_Lanterne";
+            div_Lanterne.className= "filterselect";
+            document.getElementById("menu").appendChild(div_Lanterne);
+            sel_Lanterne = document.createElement('select');
+            sel_Lanterne.multiple = true;
+            sel_Lanterne.size = 9;
+            sel_Lanterne.id = "sel_Lanterne";
+            var Lanterne_options_str = "<option value='' unselected></option>";
+            sel_Lanterne.onchange = function(){filterFunc()};
+            Lanterne_options_str  += '<option value="NULL">NULL</option>';
+            Lanterne_options_str  += '<option value="EXIO">EXIO</option>';
+            Lanterne_options_str  += '<option value="EXIO ou TECEO">EXIO ou TECEO</option>';
+            Lanterne_options_str  += '<option value="Existante à conserver">Existante à conserver</option>';
+            Lanterne_options_str  += '<option value="Existante à reposer">Existante à reposer</option>';
+            Lanterne_options_str  += '<option value="HAPILED">HAPILED</option>';
+            Lanterne_options_str  += '<option value="RETROFIT LEDS">RETROFIT LEDS</option>';
+            Lanterne_options_str  += '<option value="Récup">Récup</option>';
+            Lanterne_options_str  += '<option value="TECEO">TECEO</option>';
+            sel_Lanterne.innerHTML = Lanterne_options_str;
+            div_Lanterne.appendChild(sel_Lanterne);
+            var lab_Lanterne = document.createElement('div');
+            lab_Lanterne.innerHTML = 'Lanterne';
+            lab_Lanterne.className = 'filterlabel';
+            div_Lanterne.appendChild(lab_Lanterne);
+            var reset_Lanterne = document.createElement('div');
+            reset_Lanterne.innerHTML = 'clear filter';
+            reset_Lanterne.className = 'filterlabel';
+            reset_Lanterne.onclick = function() {
+                var options = document.getElementById("sel_Lanterne").options;
+                for (var i=0; i < options.length; i++) {
+                    options[i].selected = false;
+                }
+                filterFunc();
+            };
+            div_Lanterne.appendChild(reset_Lanterne);
+            document.getElementById("menu").appendChild(
+                document.createElement("div"));
+            var div_Observatio = document.createElement('div');
+            div_Observatio.id = "div_Observatio";
+            div_Observatio.className= "filterselect";
+            document.getElementById("menu").appendChild(div_Observatio);
+            sel_Observatio = document.createElement('select');
+            sel_Observatio.multiple = true;
+            sel_Observatio.size = 10;
+            sel_Observatio.id = "sel_Observatio";
+            var Observatio_options_str = "<option value='' unselected></option>";
+            sel_Observatio.onchange = function(){filterFunc()};
+            Observatio_options_str  += '<option value="NULL">NULL</option>';
+            Observatio_options_str  += '<option value="1 sur RD et l&apos;autre à 180°">1 sur RD et l&apos;autre à 180°</option>';
+            Observatio_options_str  += '<option value="21 REP 088">21 REP 088</option>';
+            Observatio_options_str  += '<option value="A déplacer?">A déplacer?</option>';
+            Observatio_options_str  += '<option value="A reposer en A1-2 ou A1-3">A reposer en A1-2 ou A1-3</option>';
+            Observatio_options_str  += '<option value="Adaptateur à prévoir - Ø Crosse">Adaptateur à prévoir - Ø Crosse</option>';
+            Observatio_options_str  += '<option value="Ancien mât à récupérer">Ancien mât à récupérer</option>';
+            Observatio_options_str  += '<option value="Attention HTA en surplomb">Attention HTA en surplomb</option>';
+            Observatio_options_str  += '<option value="Attention HTA en surplomb - Consignation ?">Attention HTA en surplomb - Consignation ?</option>';
+            Observatio_options_str  += '<option value="Ht à confirmer">Ht à confirmer</option>';
+            Observatio_options_str  += '<option value="Ht à confirmer - Ancien mât à récupérer">Ht à confirmer - Ancien mât à récupérer</option>';
+            Observatio_options_str  += '<option value="Ne pas reposer">Ne pas reposer</option>';
+            Observatio_options_str  += '<option value="Pas de LUMIO">Pas de LUMIO</option>';
+            Observatio_options_str  += '<option value="Photovoltaïque - NOVEA GRIFF ou FONROCHE">Photovoltaïque - NOVEA GRIFF ou FONROCHE</option>';
+            Observatio_options_str  += '<option value="Pose LUMIO">Pose LUMIO</option>';
+            Observatio_options_str  += '<option value="Pose LUMIO - TECEO récupérée en B1-39">Pose LUMIO - TECEO récupérée en B1-39</option>';
+            Observatio_options_str  += '<option value="Pose LUMIO - TECEO récupérée en B1-40">Pose LUMIO - TECEO récupérée en B1-40</option>';
+            Observatio_options_str  += '<option value="Pose LUMIO dans existant">Pose LUMIO dans existant</option>';
+            Observatio_options_str  += '<option value="Pose mât récupéré sur B1">Pose mât récupéré sur B1</option>';
+            Observatio_options_str  += '<option value="RETROFIT LEDS">RETROFIT LEDS</option>';
+            Observatio_options_str  += '<option value="RETROFIT LEDS X2">RETROFIT LEDS X2</option>';
+            Observatio_options_str  += '<option value="Recâblage impossible (Câble en 2x) - Prévoir LUMIO">Recâblage impossible (Câble en 2x) - Prévoir LUMIO</option>';
+            Observatio_options_str  += '<option value="Récup TECEO">Récup TECEO</option>';
+            sel_Observatio.innerHTML = Observatio_options_str;
+            div_Observatio.appendChild(sel_Observatio);
+            var lab_Observatio = document.createElement('div');
+            lab_Observatio.innerHTML = 'Observatio';
+            lab_Observatio.className = 'filterlabel';
+            div_Observatio.appendChild(lab_Observatio);
+            var reset_Observatio = document.createElement('div');
+            reset_Observatio.innerHTML = 'clear filter';
+            reset_Observatio.className = 'filterlabel';
+            reset_Observatio.onclick = function() {
+                var options = document.getElementById("sel_Observatio").options;
+                for (var i=0; i < options.length; i++) {
+                    options[i].selected = false;
+                }
+                filterFunc();
+            };
+            div_Observatio.appendChild(reset_Observatio);
+        resetLabels([layer_Coffretdecommande_2,layer_22REP168_3]);
+        map.on("zoomend", function(){
+            resetLabels([layer_Coffretdecommande_2,layer_22REP168_3]);
+        });
+        map.on("layeradd", function(){
+            resetLabels([layer_Coffretdecommande_2,layer_22REP168_3]);
+        });
+        map.on("layerremove", function(){
+            resetLabels([layer_Coffretdecommande_2,layer_22REP168_3]);
+        });
+        </script>
+    </body>
+</html>
